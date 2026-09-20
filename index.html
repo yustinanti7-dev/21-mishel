@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Para Mishel 💛</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      background-color: #020202;
+      font-family: 'Georgia', serif;
+      overflow: hidden;
+      color: #ffffff;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #musica-btn {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+    }
+
+    #escena-puerta {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle, #1a1a1a 0%, #020202 100%);
+      z-index: 20;
+      transition: opacity 1.5s ease;
+    }
+
+    .instruccion-puerta {
+      color: #cccccc;
+      font-size: 1.1rem;
+      margin-bottom: 25px;
+      letter-spacing: 1px;
+      animation: pulse 2s infinite;
+    }
+
+    .puerta-container {
+      width: 140px;
+      height: 240px;
+      border: 4px solid #444;
+      border-radius: 8px 8px 0 0;
+      position: relative;
+      cursor: pointer;
+      background: #0d0d0d;
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.1);
+    }
+
+    .perilla {
+      width: 16px;
+      height: 16px;
+      background: #e6c619;
+      border-radius: 50%;
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      box-shadow: 0 0 10px #e6c619;
+    }
+
+    .marcas-toque {
+      position: absolute;
+      bottom: -35px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .punto {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid #e6c619;
+    }
+
+    .punto.activo {
+      background-color: #e6c619;
+      box-shadow: 0 0 8px #e6c619;
+    }
+
+    #escena-pasillo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      perspective: 600px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .escena-3d {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .pared {
+      position: absolute;
+      opacity: 0.15;
+      background-image: 
+        linear-gradient(to right, #ffd700 1px, transparent 1px),
+        linear-gradient(to bottom, #ffd700 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+
+    .pared-izq { width: 2000px; height: 100%; left: -1000px; transform: rotateY(90deg); }
+    .pared-der { width: 2000px; height: 100%; right: -1000px; transform: rotateY(-90deg); }
+    .piso { width: 100%; height: 2000px; bottom: -1000px; transform: rotateX(90deg); }
+    .techo { width: 100%; height: 2000px; top: -1000px; transform: rotateX(-90deg); }
+
+    .luz-fondo {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(20px);
+      pointer-events: none;
+    }
+
+    .contenedor-texto {
+      position: relative;
+      z-index: 10;
+      max-width: 600px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .texto-brillante {
+      font-size: 1.5rem;
+      line-height: 1.8;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 
+                   0 0 20px rgba(255, 215, 0, 0.6), 
+                   0 0 30px rgba(255, 215, 0, 0.4);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .pregunta-final {
+      font-size: 1.8rem !important;
+      color: #ffe082 !important;
+      font-weight: bold;
+      text-shadow: 0 0 15px rgba(255, 215, 0, 1) !important;
+      animation: flotar 2s infinite alternate ease-in-out;
+    }
+
+    .indicador-clic {
+      position: absolute;
+      bottom: 25px;
+      font-size: 0.8rem;
+      color: #888;
+      letter-spacing: 2px;
+      animation: pulse 1.8s infinite;
+      z-index: 10;
+    }
+
+    .flor-cayendo {
+      position: absolute;
+      top: -50px;
+      pointer-events: none;
+      z-index: 15;
+      animation: caer linear forwards;
+    }
+
+    @keyframes caer {
+      0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 1; }
+      100% { transform: translateY(105vh) rotate(360deg) scale(1.2); opacity: 0.8; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.9; }
+    }
+
+    @keyframes flotar {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+
+  <button id="musica-btn" onclick="toggleMusica(event)">🎵 Música: OFF</button>
+  
+  <audio id="audio-fondo" loop preload="auto">
+    <source src="https://files.catbox.moe/wwh750.m4a" type="audio/mpeg">
+  </audio>
+
+  <div id="escena-puerta">
+    <div class="instruccion-puerta">Toca la puerta 3 veces para entrar...</div>
+    <div class="puerta-container" onclick="tocarPuerta()">
+      <div class="perilla"></div>
+    </div>
+    <div class="marcas-toque">
+      <div class="punto" id="p1"></div>
+      <div class="punto" id="p2"></div>
+      <div class="punto" id="p3"></div>
+    </div>
+  </div>
+
+  <div id="escena-pasillo" onclick="siguienteFrase()">
+    <div class="escena-3d" id="camara-pasillo">
+      <div class="pared pared-izq"></div>
+      <div class="pared pared-der"></div>
+      <div class="pared piso"></div>
+      <div class="pared techo"></div>
+    </div>
+    
+    <div class="luz-fondo"></div>
+
+    <div class="contenedor-texto">
+      <div class="texto-brillante" id="texto-pantalla">...</div>
+    </div>
+
+    <div class="indicador-clic" id="indicador">TOCA PARA AVANZAR EN EL PASILLO</div>
+  </div>
+
+  <script>
+    let toques = 0;
+    let indiceFrase = 0;
+    let avanceZ = 0;
+    let lluviaIniciada = false;
+    let musicaSonando = false;
+
+    const audio = document.getElementById('audio-fondo');
+    const btnMusica = document.getElementById('musica-btn');
+
+    function toggleMusica(e) {
+      if (e) e.stopPropagation();
+      if (musicaSonando) {
+        audio.pause();
+        btnMusica.innerText = "🎵 Música: OFF";
+        musicaSonando = false;
+      } else {
+        audio.play().then(() => {
+          btnMusica.innerText = "🎵 Música: ON";
+          musicaSonando = true;
+        }).catch(() => {
+          btnMusica.innerText = "🎵 Toca para activar";
+        });
+      }
+    }
+
+    const frases = [
+      "Hola hermosa, ¿cómo estás?...",
+      "Cada vez que pienso en ti, mis latidos se aceleran...",
+      "y cuando nos vemos y te miro...",
+      "no puedo dejar de pensar en lo linda que puedes llegar a ser sin esforzarte.",
+      "La verdad eres una chica muy bella...",
+      "y las veces que me apoyo en ti o nos echamos juntos...",
+      "siento tu latir y siento cómo se coordinan con el mío.",
+      "No quiero que esto se acabe...",
+      "quiero que sea nuestro primer 21 más no el último. 🌻✨",
+      "Te amo Mishel...",
+      "y amo tus ojos, tus labios, el tono de tu voz...",
+      "tus pestañas, tu risa, cómo piensas y cómo te expresas.",
+      "Seamos mucho amor entre los dos. 💛",
+      "¿Puedes salir? Estoy afuera, tengo que darte algo. 🌻✨"
+    ];
+
+    function tocarPuerta() {
+      if (toques < 3) {
+        toques++;
+        document.getElementById(`p${toques}`).classList.add('activo');
+        
+        if (toques === 3) {
+          // Intentar encender la música al romper la puerta
+          audio.play().then(() => {
+            musicaSonando = true;
+            btnMusica.innerText = "🎵 Música: ON";
+          }).catch(() => {
+            btnMusica.innerText = "🎵 Toca para activar";
+          });
+
+          setTimeout(() => {
+            const puertaEscena = document.getElementById('escena-puerta');
+            puertaEscena.style.opacity = '0';
+            setTimeout(() => {
+              puertaEscena.style.display = 'none';
+              mostrarFrase();
+            }, 1500);
+          }, 300);
+        }
+      }
+    }
+
+    function mostrarFrase() {
+      const elementoTexto = document.getElementById('texto-pantalla');
+      const camara = document.getElementById('camara-pasillo');
+
+      avanceZ += 120;
+      camara.style.transform = `translateZ(${avanceZ}px)`;
+
+      elementoTexto.style.opacity = '0';
+      elementoTexto.style.transform = 'scale(0.9)';
+
+      setTimeout(() => {
+        elementoTexto.innerHTML = frases[indiceFrase];
+
+        if (indiceFrase === frases.length - 1) {
+          elementoTexto.classList.add('pregunta-final');
+          document.getElementById('indicador').style.display = 'none';
+        }
+
+        elementoTexto.style.opacity = '1';
+        elementoTexto.style.transform = 'scale(1)';
+
+        if (indiceFrase === 8 && !lluviaIniciada) {
+          lluviaIniciada = true;
+          iniciarLluviaGirasoles();
+        }
+      }, 400);
+    }
+
+    function siguienteFrase() {
+      if (toques < 3) return;
+
+      if (indiceFrase < frases.length - 1) {
+        indiceFrase++;
+        mostrarFrase();
+      }
+    }
+
+    function iniciarLluviaGirasoles() {
+      setInterval(() => {
+        crearFlor();
+      }, 250);
+    }
+
+    function crearFlor() {
+      const flor = document.createElement('div');
+      flor.classList.add('flor-cayendo');
+      
+      const elementos = ['🌻', '🌼', '💛', '✨'];
+      flor.innerText = elementos[Math.floor(Math.random() * elementos.length)];
+      
+      flor.style.left = Math.random() * 100 + 'vw';
+      flor.style.fontSize = (Math.random() * 22 + 18) + 'px';
+      flor.style.animationDuration = (Math.random() * 3 + 2.5) + 's';
+      
+      document.body.appendChild(flor);
+
+      setTimeout(() => {
+        flor.remove();
+      }, 5500);
+    }
+  </script>
+
+</body>
+</html>
